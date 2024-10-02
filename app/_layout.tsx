@@ -1,37 +1,71 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, TextInput, Button, FlatList, TouchableOpacity } from 'react-native';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+const Layout: React.FC = () => {
+  const [task, setTask] = useState<string>('');
+  const [tasks, setTasks] = useState<{ key: string; value: string }[]>([]);
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
+  const addTask = () => {
+    if (task.length > 0) {
+      setTasks([...tasks, { key: Math.random().toString(), value: task }]);
+      setTask('');
     }
-  }, [loaded]);
+  };
 
-  if (!loaded) {
-    return null;
-  }
+  const deleteTask = (taskKey: string) => {
+    setTasks(tasks.filter((item) => item.key !== taskKey));
+  };
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-    </ThemeProvider>
+    <View style={styles.container}>
+      <Text style={styles.title}>Lista de Tarefas</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Digite uma tarefa"
+        value={task}
+        onChangeText={setTask}
+      />
+      <Button title="Adicionar" onPress={addTask} />
+      <FlatList
+        data={tasks}
+        renderItem={({ item }) => (
+          <TouchableOpacity onPress={() => deleteTask(item.key)}>
+            <Text style={styles.task}>{item.value}</Text>
+          </TouchableOpacity>
+        )}
+      />
+    </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 30,
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    marginTop: 20,
+    textAlign: 'center', 
+  },
+  input: {
+    borderBottomColor: '#ccc',
+    borderBottomWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  task: {
+    padding: 10,
+    marginTop: 10,
+    backgroundColor: '#f8f8f8',
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 5,
+  },
+});
+
+export default Layout;
